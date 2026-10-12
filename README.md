@@ -1,5 +1,6 @@
 # repo
 
+repo-Settings-Actions secrets and variables-添加 Repository secrets-TOKEN
 维护
 
 - 添加仓库：在 sync-list.txt 末尾增加一行。

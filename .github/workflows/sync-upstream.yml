@@ -30,7 +30,7 @@ jobs:
       - name: Sync and backup branches
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           set -Eeuo pipefail
 
