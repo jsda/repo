@@ -1,0 +1,4 @@
+# 每行使用 上游仓库地址|上游分支|目标分支 格式，支持空行和注释。
+
+https://github.com/cmliu/edgetunnel|main|edgetunnel
+https://github.com/wukongdaily/ImmortalWrt-ImageBuilder|master|ImmortalWrt-ImageBuilder

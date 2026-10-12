@@ -1,0 +1,103 @@
+name: Sync Upstream Repositories
+
+on:
+  schedule:
+    # 每 6 小时执行一次（UTC）
+    - cron: "15 */6 * * *"
+  workflow_dispatch:
+
+# 仅允许读写当前仓库内容
+permissions:
+  contents: write
+
+# 避免多个同步任务同时修改分支
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync upstream branches
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Sync and backup branches
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+
+          CONFIG_FILE="sync-list.txt"
+
+          if [[ ! -f "$CONFIG_FILE" ]]; then
+            echo "::error::找不到配置文件 $CONFIG_FILE"
+            exit 1
+          fi
+
+          BACKUP_TIME=$(date -u +%Y%m%d-%H%M%S)
+
+          while IFS='|' read -r upstream_url upstream_branch target_branch || [[ -n "${upstream_url:-}" ]]; do
+            # 去除首尾空格
+            upstream_url=$(echo "${upstream_url:-}" | xargs)
+            upstream_branch=$(echo "${upstream_branch:-}" | xargs)
+            target_branch=$(echo "${target_branch:-}" | xargs)
+
+            # 跳过空行和注释
+            [[ -z "$upstream_url" || "$upstream_url" == \#* ]] && continue
+
+            if [[ -z "$upstream_branch" || -z "$target_branch" ]]; then
+              echo "::error::配置格式错误：$upstream_url"
+              exit 1
+            fi
+
+            echo "::group::同步 $upstream_url ($upstream_branch -> $target_branch)"
+
+            git fetch --no-tags "$upstream_url" \
+              "refs/heads/${upstream_branch}"
+
+            upstream_sha=$(git rev-parse FETCH_HEAD)
+
+            # 获取当前仓库目标分支；不存在时允许创建
+            if git fetch origin \
+              "+refs/heads/${target_branch}:refs/remotes/origin/${target_branch}"; then
+
+              current_sha=$(git rev-parse \
+                "refs/remotes/origin/${target_branch}")
+
+              if [[ "$current_sha" == "$upstream_sha" ]]; then
+                echo "分支已是最新，无需同步"
+                echo "::endgroup::"
+                continue
+              fi
+
+              backup_branch="backup/${target_branch}/${BACKUP_TIME}"
+
+              git push origin \
+                "${current_sha}:refs/heads/${backup_branch}"
+
+              echo "已备份到 $backup_branch"
+            else
+              echo "目标分支不存在，将创建 $target_branch"
+            fi
+
+            git push origin \
+              "${upstream_sha}:refs/heads/${target_branch}" \
+              --force
+
+            echo "同步完成：$target_branch -> $upstream_sha"
+            echo "::endgroup::"
+
+          done < "$CONFIG_FILE"
+
+      - name: Delete Old Workflows
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          retain_days: 7
+          keep_minimum_runs: 7
