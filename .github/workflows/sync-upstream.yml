@@ -2,8 +2,7 @@ name: Sync Upstream Repositories
 
 on:
   schedule:
-    # 每 6 小时执行一次（UTC）
-    - cron: "15 */6 * * *"
+    - cron: "15 3 * * *"
   workflow_dispatch:
 
 # 仅允许读写当前仓库内容
