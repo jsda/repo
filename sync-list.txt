@@ -2,6 +2,6 @@
 
 https://github.com/cmliu/edgetunnel|main|edgetunnel
 https://github.com/wukongdaily/ImmortalWrt-ImageBuilder|master|ImmortalWrt-ImageBuilder
-https://github.com/Micropoor/Micro8|master|Micro8
-https://github.com/ToyoDAdoubi/doubi|master|doubi
+# https://github.com/Micropoor/Micro8|master|Micro8
+# https://github.com/ToyoDAdoubi/doubi|master|doubi
 https://github.com/endersonmenezes/free-disk-space|main|free-disk-space
