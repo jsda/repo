@@ -7,6 +7,7 @@ on:
 
 # 仅允许读写当前仓库内容
 permissions:
+  actions: write
   contents: write
 
 # 避免多个同步任务同时修改分支
